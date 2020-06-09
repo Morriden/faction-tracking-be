@@ -25,7 +25,38 @@ describe('Faction routes', () => {
 
   it('create a faction with post route', () => {
     return request(app)
-      .post()
+      .post('/api/v1/factions')
+      .send({
+        name: 'The Harpers',
+        description: 'description for the harpers organization.',
+        image: 'image.url.harpers.com'
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'The Harpers',
+          description: 'description for the harpers organization.',
+          image: 'image.url.harpers.com',
+          __v: 0
+        });
+      });
+  });
+
+  it('gets all factions with the get route', () => {
+    return request(app)
+      .post('/api/v1/factions')
+      .send({
+        name: 'The Harpers',
+        description: 'description for the harpers organization.',
+        image: 'image.url.harpers.com'
+      })
+      .then(() => request(app).get('/api/v1/factions'))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          name: 'The Harpers',
+        }]);
+      });
   });
 
 });
