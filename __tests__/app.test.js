@@ -59,4 +59,44 @@ describe('Faction routes', () => {
       });
   });
 
+  it('gets one faction by id with the get route', () => {
+    return Faction.create({
+      name: 'The Harpers',
+      description: 'description for the harpers organization.',
+      image: 'image.url.harpers.com'
+    })
+      .then(faction => request(app).get(`/api/v1/factions/${faction._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'The Harpers',
+          description: 'description for the harpers organization.',
+          image: 'image.url.harpers.com',
+          __v: 0
+        });
+      });
+  });
+
+  it('It will update a faction by id', () => {
+    return Faction.create({
+      name: 'The Harpers',
+      description: 'description for harpers',
+      image: 'image.url'
+    })
+      .then(faction => {
+        return request(app)
+          .patch(`/api/v1/factions/${faction._id}`)
+          .send({ name: 'The Emerald Enclave', description: 'description for the Emeral Enclave', image: 'new image' });
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'The Emerald Enclave',
+          description: 'description for the Emeral Enclave',
+          image: 'new image',
+          __v: 0
+        });
+      });
+  });
+
 });
