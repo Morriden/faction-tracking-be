@@ -99,4 +99,21 @@ describe('Faction routes', () => {
       });
   });
 
+  it('It will delete a faction with id', () => {
+    return Faction.create({
+      name: 'The Harpers',
+      description: 'description',
+      image: 'image.url'
+    })
+      .then(faction => request(app).delete(`/api/v1/factions/${faction._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'The Harpers',
+          description: 'description',
+          image: 'image.url',
+          __v: 0
+        });
+      });
+  });
 });
