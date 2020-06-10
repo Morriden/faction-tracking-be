@@ -7,6 +7,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const Faction = require('../lib/models/faction');
 const Adventurer = require('../lib/models/adventurer');
+const Membership = require('../lib/models/membership');
 
 describe('Faction routes', () => {
   beforeAll(async() => {
@@ -210,3 +211,62 @@ describe('Faction routes', () => {
       });
   });
 });
+
+describe('Membership routes', () => {
+
+  beforeAll(async() => {
+    const uri = await mongod.getUri();
+    return connect(uri);
+  });
+
+  beforeEach(() => {
+    return mongoose.connection.dropDatabase();
+  });
+
+  afterAll(async() => {
+    await mongoose.connection.close();
+    return mongod.stop();
+  });
+
+  it('creates a new membership', async() => {
+
+    const newFaction = await Faction.create({
+      name: 'The Harpers',
+      description: 'description for the harpers organization.',
+      image: 'image.url.harpers.com'
+    });
+
+    const newAdventurer = await Adventurer.create({
+      name: 'Morriden',
+      class: 'Wizard',
+      image: 'image.url',
+      level: 8,
+      health: 47,
+      wealth: 39,
+    });
+
+    return request(app)
+      .post('/api/v1/memberships')
+      .send({
+        faction: newFaction.id,
+        adventurer: newAdventurer.id
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          faction: newFaction.id,
+          adventurer: newAdventurer.id,
+          __v: 0
+        });
+      });
+
+  });
+});
+
+
+
+// POLL MODEL = Quest model, Quest title, quest description, and options on how to solve quest? POLL
+// VOTE MODEL = is reference to quest, adventurer, and reference to option selected.
+// MEMBERSHIP ARE WE ALMOST DONE? We are doing it correct huzzah.
+
+
