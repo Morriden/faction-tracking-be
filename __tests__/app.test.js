@@ -8,6 +8,7 @@ const app = require('../lib/app');
 const Faction = require('../lib/models/faction');
 const Adventurer = require('../lib/models/adventurer');
 const Membership = require('../lib/models/membership');
+const Quest = require('../lib/models/quest');
 
 describe('Faction routes', () => {
   beforeAll(async() => {
@@ -312,6 +313,49 @@ describe('Membership routes', () => {
         });
       });
   });
+});
+
+describe('Quests routes (poll)', () => {
+  beforeAll(async() => {
+    const uri = await mongod.getUri();
+    return connect(uri);
+  });
+
+  beforeEach(() => {
+    return mongoose.connection.dropDatabase();
+  });
+
+  let newQuest;
+  let newFaction;
+  beforeEach(async() => {
+    newQuest = await Quest.create({
+      title: 'Find the missing wagon!',
+      description: 'A wagon has gone missing!',
+      options: ['Try to track', 'Ask the people around', 'Use magic']
+    });
+    newFaction = await Faction.create({
+      name: 'The Harpers',
+      description: 'description for the harpers organization.',
+      image: 'image.url.harpers.com'
+    });
+  });
+
+  afterAll(async() => {
+    await mongoose.connection.close();
+    return mongod.stop();
+  });
+
+  it('creates a new poll', async() => {
+    return request(app)
+      .post('/api/v1/quests')
+      .send({
+        
+        title: 'Find the missing wagon!',
+        description: 'A wagon has gone missing!',
+        options: ['Try to track', 'Ask the people around', 'Use magic']
+      });
+  });
+
 });
 
 // POLL MODEL = Quest model, Quest title, quest description, and options on how to solve quest? POLL
