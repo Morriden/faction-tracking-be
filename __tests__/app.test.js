@@ -222,21 +222,17 @@ describe('Membership routes', () => {
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
   });
+  let newFaction;
+  let newAdventurer;
+  let newMembership;
 
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
-
-  it('creates a new membership', async() => {
-
-    const newFaction = await Faction.create({
+  beforeEach(async() => {
+    newFaction = await Faction.create({
       name: 'The Harpers',
       description: 'description for the harpers organization.',
       image: 'image.url.harpers.com'
     });
-
-    const newAdventurer = await Adventurer.create({
+    newAdventurer = await Adventurer.create({
       name: 'Morriden',
       class: 'Wizard',
       image: 'image.url',
@@ -244,7 +240,18 @@ describe('Membership routes', () => {
       health: 47,
       wealth: 39,
     });
+    newMembership = await Membership.create({
+      adventurer: newAdventurer._id,
+      faction: newFaction._id
+    });
+  });
 
+  afterAll(async() => {
+    await mongoose.connection.close();
+    return mongod.stop();
+  });
+
+  it('creates a new membership', async() => {
     return request(app)
       .post('/api/v1/memberships')
       .send({
@@ -254,19 +261,59 @@ describe('Membership routes', () => {
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
-          faction: newFaction.id,
-          adventurer: newAdventurer.id,
+          faction: newFaction._id.toString(),
+          adventurer: newAdventurer._id.toString(),
           __v: 0
         });
       });
+  });
 
+  it('sees all users in organization', async() => {
+    return request(app)
+      .get(`/api/v1/memberships/org/${newFaction._id}`)
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          faction: newFaction._id.toString(),
+          __v: 0,
+          adventurer: {
+            _id: newAdventurer._id.toString(),
+            name: 'Morriden',
+          }
+        }]);
+      });
+  });
+  
+  it('sees all organizations a user is a part of', async() => {
+    return request(app)
+      .get(`/api/v1/memberships/user/${newAdventurer._id}`)
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          adventurer: newAdventurer._id.toString(),
+          __v: 0,
+          faction: {
+            _id: newFaction._id.toString(),
+            name: 'The Harpers',
+          }
+        }]);
+      });
+  });
+  
+  it('deletes the membership', async() => {
+    return request(app)
+      .delete(`/api/v1/memberships/${newMembership._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          __v: 0,
+          adventurer: newAdventurer._id.toString(),
+          faction: newFaction._id.toString()
+        });
+      });
   });
 });
-
-
 
 // POLL MODEL = Quest model, Quest title, quest description, and options on how to solve quest? POLL
 // VOTE MODEL = is reference to quest, adventurer, and reference to option selected.
 // MEMBERSHIP ARE WE ALMOST DONE? We are doing it correct huzzah.
-
-
