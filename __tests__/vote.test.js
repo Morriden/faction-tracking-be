@@ -20,9 +20,11 @@ describe('Membership routes', () => {
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
   });
+
   let newQuest;
   let newFaction;
   let newAdventurer;
+  let newVote;
 
   beforeEach(async() => {
     newAdventurer = await Adventurer.create({
@@ -44,6 +46,11 @@ describe('Membership routes', () => {
       description: 'A wagon has gone missing!',
       options: ['Try to track', 'Ask the people around', 'Use magic']
     });
+    newVote = await Vote.create({
+      quest: newQuest.id,
+      adventurer: newAdventurer.id,
+      voteChosen: 'Try to track'
+    });
   });
     
   afterAll(async() => {
@@ -51,20 +58,63 @@ describe('Membership routes', () => {
     return mongod.stop();
   });
 
-  it.only('create a new vote', () => {
+  it('create a new vote', async() => {
     return request(app)
       .post('/api/v1/votes')
       .send({
         adventurer: newAdventurer._id,
         quest: newQuest._id,
-        vote: 'Try to track'
+        voteChosen: 'Try to track'
       })
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
           adventurer: newAdventurer.id,
           quest: newQuest.id,
-          vote: 'Try to track',
+          voteChosen: 'Try to track',
+          __v: 0
+        });
+      });
+  });
+
+  it('get all votes on a quest', async() => {
+    return request(app)
+      .get(`/api/v1/votes/quest/${newQuest._id}`)
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Try to track',
+          __v: 0      
+        }]);
+      });
+  });
+
+  it('get all votes by a user', async() => {
+    return request(app)
+      .get(`/api/v1/votes/user/${newAdventurer._id}`)
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Try to track',
+          __v: 0
+        }]);
+      });
+  });
+
+  it('change what you voted for', async() => {
+    return request(app)
+      .patch(`/api/v1/votes/${newVote._id}`)
+      .send({ voteChosen: 'Ask the people around' })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Ask the people around',
           __v: 0
         });
       });
