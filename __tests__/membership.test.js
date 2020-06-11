@@ -109,4 +109,21 @@ describe('Membership routes', () => {
         });
       });
   });
+
+  it('deletes a membership and all votes with that membership', async() => {
+    return request(app)
+      .delete(`/api/v1/memberships/${newMembership._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          __v: 0,
+          adventurer: newAdventurer._id.toString(),
+          faction: newFaction._id.toString()
+        });
+        return Adventurer.find({ membership: newMembership._id });
+      })
+      .then(adventurer => {
+        expect(adventurer).toEqual([]);
+      });
+  });
 });
