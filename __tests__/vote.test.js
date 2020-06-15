@@ -77,6 +77,25 @@ describe('Membership routes', () => {
       });
   });
 
+  it('Should update the original vote', async() => {
+    return request(app)
+      .post('/api/v1/votes')
+      .send({
+        adventurer: newAdventurer._id,
+        quest: newQuest._id,
+        voteChosen: 'Try to track'
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Try to track',
+          __v: 0
+        });
+      });
+  });
+
   it('get all votes on a quest', async() => {
     return request(app)
       .get(`/api/v1/votes/quest/${newQuest._id}`)
