@@ -27,11 +27,12 @@ describe('Membership routes', () => {
   let newFaction;
   let newAdventurer;
   let newVote;
+  const agent = request.agent(app);
 
   beforeEach(async() => {
     newUser = await User.create({
       email: 'test@test.com',
-      passwordHash: 'password'
+      password: 'password'
     });
     newAdventurer = await Adventurer.create({
       user: newUser.id,
@@ -58,6 +59,12 @@ describe('Membership routes', () => {
       adventurer: newAdventurer.id,
       voteChosen: 'Try to track'
     });
+    return agent 
+      .post('/api/v1/users/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
   });
     
   afterAll(async() => {
@@ -66,7 +73,7 @@ describe('Membership routes', () => {
   });
 
   it('create a new vote', async() => {
-    return request(app)
+    return agent
       .post('/api/v1/votes')
       .send({
         adventurer: newAdventurer._id,
@@ -85,7 +92,7 @@ describe('Membership routes', () => {
   });
 
   it('Should update the original vote', async() => {
-    return request(app)
+    return agent
       .post('/api/v1/votes')
       .send({
         adventurer: newAdventurer._id,
@@ -104,7 +111,7 @@ describe('Membership routes', () => {
   });
 
   it('get all votes on a quest', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/votes/quest/${newQuest._id}`)
       .then(res => {
         expect(res.body).toEqual([{
@@ -118,7 +125,7 @@ describe('Membership routes', () => {
   });
 
   it('get all votes by a user', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/votes/user/${newAdventurer._id}`)
       .then(res => {
         expect(res.body).toEqual([{
@@ -132,7 +139,7 @@ describe('Membership routes', () => {
   });
 
   it('change what you voted for', async() => {
-    return request(app)
+    return agent
       .patch(`/api/v1/votes/${newVote._id}`)
       .send({ voteChosen: 'Ask the people around' })
       .then(res => {

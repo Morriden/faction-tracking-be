@@ -24,11 +24,12 @@ describe('Membership routes', () => {
   let newFaction;
   let newAdventurer;
   let newMembership;
+  const agent = request.agent(app);
   
   beforeEach(async() => {
     newUser = await User.create({
       email: 'test@test.com',
-      passwordHash: 'password'
+      password: 'password'
     });
     newFaction = await Faction.create({
       name: 'The Harpers',
@@ -48,6 +49,12 @@ describe('Membership routes', () => {
       adventurer: newAdventurer._id,
       faction: newFaction._id
     });
+    return agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
   });
   
   afterAll(async() => {
@@ -56,7 +63,7 @@ describe('Membership routes', () => {
   });
   
   it('creates a new membership', async() => {
-    return request(app)
+    return agent
       .post('/api/v1/memberships')
       .send({
         faction: newFaction.id,
@@ -73,7 +80,7 @@ describe('Membership routes', () => {
   });
   
   it('sees all users in organization', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/memberships/org/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual([{
@@ -89,7 +96,7 @@ describe('Membership routes', () => {
   });
     
   it('sees all organizations a user is a part of', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/memberships/user/${newAdventurer._id}`)
       .then(res => {
         expect(res.body).toEqual([{
@@ -105,7 +112,7 @@ describe('Membership routes', () => {
   });
     
   it('deletes the membership', async() => {
-    return request(app)
+    return agent
       .delete(`/api/v1/memberships/${newMembership._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -118,7 +125,7 @@ describe('Membership routes', () => {
   });
 
   it('deletes a membership and all votes with that membership', async() => {
-    return request(app)
+    return agent
       .delete(`/api/v1/memberships/${newMembership._id}`)
       .then(res => {
         expect(res.body).toEqual({

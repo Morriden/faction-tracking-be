@@ -25,11 +25,12 @@ describe('Faction routes', () => {
   let newFaction;
   let newVote;
   let newAdventurer;
+  const agent = request.agent(app);
 
   beforeEach(async() => {
     newUser = await User.create({
       email: 'test@test.com',
-      passwordHash: 'password'
+      password: 'password'
     });
     newAdventurer = await Adventurer.create({
       user: newUser.id,
@@ -56,6 +57,12 @@ describe('Faction routes', () => {
       adventurer: newAdventurer.id,
       voteChosen: 'Try to track'
     });
+    return agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
   });
   
   afterAll(async() => {
@@ -64,7 +71,7 @@ describe('Faction routes', () => {
   });
   
   it('create a faction with post route', () => {
-    return request(app)
+    return agent
       .post('/api/v1/factions')
       .send({
         name: 'The Harpers',
@@ -83,7 +90,7 @@ describe('Faction routes', () => {
   });
   
   it('gets all factions with the get route', () => {
-    return request(app)
+    return agent
       .get('/api/v1/factions')
       .then(res => {
         expect(res.body).toEqual([{
@@ -94,7 +101,7 @@ describe('Faction routes', () => {
   });
   
   it('gets one faction by id with the get route', () => {
-    return request(app)
+    return agent
       .get(`/api/v1/factions/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -109,7 +116,7 @@ describe('Faction routes', () => {
   });
 
   it('gets one faction by id and shows all of members a part of it', () => {
-    return request(app)
+    return agent
       .get(`/api/v1/factions/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -124,7 +131,7 @@ describe('Faction routes', () => {
   });
   
   it('It will update a faction by id', () => {
-    return request(app)
+    return agent
       .patch(`/api/v1/factions/${newFaction._id}`)
       .send({ name: 'The Emerald Enclave', description: 'description for the Emeral Enclave', image: 'new image' })
       .then(res => {
@@ -138,7 +145,7 @@ describe('Faction routes', () => {
       });
   });
   it('It will delete a faction with id', () => {
-    return request(app)
+    return agent
       .delete(`/api/v1/factions/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -152,7 +159,7 @@ describe('Faction routes', () => {
   });
 
   it('It will delete a faction and all quests and votes assosciated with it', () => {
-    return request(app)
+    return agent
       .delete(`/api/v1/factions/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual({

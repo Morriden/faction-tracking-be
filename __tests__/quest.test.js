@@ -7,6 +7,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const Faction = require('../lib/models/faction');
 const Quest = require('../lib/models/quest');
+const User = require('../lib/models/User');
 
 describe('Quests routes (poll)', () => {
   beforeAll(async() => {
@@ -17,10 +18,16 @@ describe('Quests routes (poll)', () => {
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
   });
+
   let newQuest;
   let newFaction;
+  const agent = request.agent(app);
   
   beforeEach(async() => {
+    newUser = await User.create({
+      email: 'test@test.com',
+      password: 'password'
+    });
     newFaction = await Faction.create({
       name: 'The Harpers',
       description: 'description for the harpers organization.',
@@ -32,6 +39,12 @@ describe('Quests routes (poll)', () => {
       description: 'A wagon has gone missing!',
       options: ['Try to track', 'Ask the people around', 'Use magic']
     });
+    return agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
   });
   
   afterAll(async() => {
@@ -40,7 +53,7 @@ describe('Quests routes (poll)', () => {
   });
   
   it('creates a new quest', async() => {
-    return request(app)
+    return agent
       .post('/api/v1/quests')
       .send({
         faction: newFaction._id,
@@ -61,7 +74,7 @@ describe('Quests routes (poll)', () => {
   });
   
   it('gets all quests for an organization', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/quests/faction/${newFaction._id}`)
       .then(res => {
         expect(res.body).toEqual([{
@@ -80,7 +93,7 @@ describe('Quests routes (poll)', () => {
   });
   
   it('gets one quest by ID', async() => {
-    return request(app)
+    return agent
       .get(`/api/v1/quests/${newQuest._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -98,7 +111,7 @@ describe('Quests routes (poll)', () => {
   });
   
   it('updates a quest title or description', async() => {
-    return request(app)
+    return agent
       .patch(`/api/v1/quests/${newQuest._id}`)
       .send({ title: 'Wagon Stolen?!?!?!' })
       .then(res => {
@@ -114,7 +127,7 @@ describe('Quests routes (poll)', () => {
   });
   
   it('deletes a quest', async() => {
-    return request(app)
+    return agent
       .delete(`/api/v1/quests/${newQuest._id}`)
       .then(res => {
         expect(res.body).toEqual({

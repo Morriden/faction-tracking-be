@@ -22,11 +22,12 @@ describe('Adventurer routes', () => {
   let newUser;
   let newAdventurer;
   let newFaction;
+  const agent = request.agent(app);
 
   beforeEach(async() => {
     newUser = await User.create({
       email: 'test@test.com',
-      passwordHash: 'password'
+      password: 'password'
     });
     newAdventurer = await Adventurer.create({
       user: newUser.id,
@@ -42,15 +43,22 @@ describe('Adventurer routes', () => {
       description: 'description for the harpers organization.',
       image: 'image.url.harpers.com'
     });
-  });
   
+    return agent 
+      .post('/api/v1/users/login')
+      .send({
+        email: 'test@test.com',
+        password: 'password'
+      });
+  });
+
   afterAll(async() => {
     await mongoose.connection.close();
     return mongod.stop();
   });
   
   it('creates a adventurer', () => {
-    return request(app)
+    return agent
       .post('/api/v1/adventurers')
       .send({
         name: 'Morriden',
@@ -77,7 +85,7 @@ describe('Adventurer routes', () => {
   });
 
   it('get a adventurer by id', () => {
-    return request(app)
+    return agent
       .get(`/api/v1/adventurers/${newAdventurer._id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -96,7 +104,7 @@ describe('Adventurer routes', () => {
   });
   
   it('It will update a adventurer by id', () => {
-    return request(app)
+    return agent
       .patch(`/api/v1/adventurers/${newAdventurer._id}`)
       .send({ name: 'Kartanis', class: 'Paladin', image: 'new image' })
       .then(res => {
@@ -115,7 +123,7 @@ describe('Adventurer routes', () => {
   });
   
   it('It will delete a adventurer with id', () => {
-    return request(app)
+    return agent
       .delete(`/api/v1/adventurers/${newAdventurer._id}`)
       .then(res => {
         expect(res.body).toEqual({
