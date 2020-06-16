@@ -9,6 +9,7 @@ const Faction = require('../lib/models/faction');
 const Quest = require('../lib/models/quest');
 const Adventurer = require('../lib/models/adventurer');
 const Vote = require('../lib/models/vote');
+const User = require('../lib/models/user');
 
 describe('Membership routes', () => {
 
@@ -21,13 +22,19 @@ describe('Membership routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
+  let newUser;
   let newQuest;
   let newFaction;
   let newAdventurer;
   let newVote;
 
   beforeEach(async() => {
+    newUser = await User.create({
+      email: 'test@test.com',
+      passwordHash: 'password'
+    });
     newAdventurer = await Adventurer.create({
+      user: newUser.id,
       name: 'Erik',
       class: 'Wizard',
       image: 'image url',

@@ -7,6 +7,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const Adventurer = require('../lib/models/adventurer');
 const Faction = require('../lib/models/faction');
+const User = require('../lib/models/user');
 
 describe('Adventurer routes', () => {
   beforeAll(async() => {
@@ -18,11 +19,17 @@ describe('Adventurer routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
+  let newUser;
   let newAdventurer;
   let newFaction;
 
   beforeEach(async() => {
+    newUser = await User.create({
+      email: 'test@test.com',
+      passwordHash: 'password'
+    });
     newAdventurer = await Adventurer.create({
+      user: newUser.id,
       name: 'Morriden',
       class: 'Wizard',
       image: 'image.url',
@@ -42,7 +49,7 @@ describe('Adventurer routes', () => {
     return mongod.stop();
   });
   
-  it('creates a user', () => {
+  it('creates a adventurer', () => {
     return request(app)
       .post('/api/v1/adventurers')
       .send({
@@ -51,6 +58,7 @@ describe('Adventurer routes', () => {
         image: 'image.url',
         level: 8,
         health: 47,
+        user: newUser.id,
         wealth: 39
       })
       .then(res => {
@@ -62,6 +70,7 @@ describe('Adventurer routes', () => {
           level: 8,
           health: 47,
           wealth: 39,
+          user: newUser.id,
           __v: 0
         });
       });
@@ -80,6 +89,7 @@ describe('Adventurer routes', () => {
           level: 8,
           health: 47,
           wealth: 39,
+          user: newUser.id,
           __v: 0
         });
       });
@@ -98,6 +108,7 @@ describe('Adventurer routes', () => {
           level: 8,
           health: 47,
           wealth: 39,
+          user: newUser.id,
           __v: 0
         });
       });
@@ -115,6 +126,7 @@ describe('Adventurer routes', () => {
           level: 8,
           health: 47,
           wealth: 39,
+          user: newUser.id,
           __v: 0
         });
       });
