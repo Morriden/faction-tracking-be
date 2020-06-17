@@ -2,6 +2,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
 const connect = require('../lib/utils/connect');
+require('dotenv').config();
 
 const request = require('supertest');
 const app = require('../lib/app');

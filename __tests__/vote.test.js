@@ -2,6 +2,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
 const connect = require('../lib/utils/connect');
+require('dotenv').config();
 
 const request = require('supertest');
 const app = require('../lib/app');
@@ -10,6 +11,7 @@ const Quest = require('../lib/models/quest');
 const Adventurer = require('../lib/models/adventurer');
 const Vote = require('../lib/models/vote');
 const User = require('../lib/models/user');
+const Membership = require('../lib/models/membership');
 
 describe('Membership routes', () => {
 
@@ -27,6 +29,7 @@ describe('Membership routes', () => {
   let newFaction;
   let newAdventurer;
   let newVote;
+  let newMembership;
   const agent = request.agent(app);
 
   beforeEach(async() => {
@@ -47,6 +50,10 @@ describe('Membership routes', () => {
       name: 'The Harpers',
       description: 'description for the harpers organization.',
       image: 'image.url.harpers.com'
+    });
+    newMembership = await Membership.create({
+      adventurer: newAdventurer.id,
+      faction: newFaction.id
     });
     newQuest = await Quest.create({
       faction: newFaction.id,
