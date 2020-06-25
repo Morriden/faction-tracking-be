@@ -1,0 +1,112 @@
+const { agent } = require('../lib/data-seed/data-helper');
+
+const Quest = require('../lib/models/quest');
+const Vote = require('../lib/models/vote');
+const User = require('../lib/models/user');
+const adventurer = require('../lib/models/adventurer');
+const vote = require('../lib/models/vote');
+const Membership = require('../lib/models/membership');
+
+describe('votes routes', () => {
+
+  it('create a new vote', async() => {
+    const newUser = await User.findOne();
+    const newAdventurer = await adventurer.findOne({ user: newUser.id });
+    const newMembership = await Membership.findOne({ adventurer: newAdventurer.id });
+    const newQuest = await Quest.findOne({ faction: newMembership.faction });
+    
+
+    return agent
+      .post('/api/v1/votes')
+      .send({
+        adventurer: newAdventurer._id,
+        quest: newQuest._id,
+        voteChosen: 'Option One'
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Option One',
+          __v: 0
+        });
+      });
+  });
+
+  it('Should update the original vote', async() => {
+    const newQuest = await Quest.findOne();
+    const newAdventurer = await adventurer.findOne();
+
+    return agent
+      .post('/api/v1/votes')
+      .send({
+        adventurer: newAdventurer._id,
+        quest: newQuest._id,
+        voteChosen: 'Try to track'
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          adventurer: newAdventurer.id,
+          quest: newQuest.id,
+          voteChosen: 'Try to track',
+          __v: 0
+        });
+      });
+  });
+
+  it('get all votes on a quest', async() => {
+    const newVote = await Vote.findOne();
+    const newQuest = await Quest.findOne();
+    const allVotes = await Vote.find(newQuest._id);
+
+    const expected = allVotes.map(vote => ({
+      _id: vote.id,
+      quest: vote.quest.id.toString(),
+      adventurer: vote.adventurer.id.toString(),
+      voteChosen: vote.voteChosen,
+      __v: 0
+    }));
+
+    return agent
+      .get(`/api/v1/votes/quest/${newQuest._id}`)
+      .then(res => {
+        expect(res.body).toEqual(expected);
+      });
+  });
+
+  it('get all votes by a user', async() => {
+    const newVote = await Vote.findOne();
+    const newAdventurer = await adventurer.findOne();
+
+    return agent
+      .get(`/api/v1/votes/user/${newAdventurer._id}`)
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          adventurer: newVote.adventurer.toString(),
+          quest: newVote.quest.toString(),
+          voteChosen: newVote.voteChosen,
+          __v: 0
+        }]);
+      });
+  });
+
+  it('change what you voted for', async() => {
+    const newVote = await Vote.findOne();
+
+    return agent
+      .patch(`/api/v1/votes/${newVote._id}`)
+      .send({ voteChosen: 'Ask the people around' })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          adventurer: newVote.adventurer.toString(),
+          quest: newVote.quest.toString(),
+          voteChosen: 'Ask the people around',
+          __v: 0
+        });
+      });
+  });
+});
