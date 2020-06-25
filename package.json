@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "seed": "node seed.js",
     "test": "jest --verbose --runInBand --testLocationInResults",
     "test:watch": "npm run test -- --watch",
     "start": "node server.js",

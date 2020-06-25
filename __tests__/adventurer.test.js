@@ -1,10 +1,7 @@
 const { agent } = require('../lib/data-seed/data-helper');
 
-const request = require('supertest');
-const app = require('../lib/app');
 const Adventurer = require('../lib/models/adventurer');
 const User = require('../lib/models/user');
-
 
 describe('Adventurer routes', () => {
   
